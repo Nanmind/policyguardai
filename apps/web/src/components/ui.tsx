@@ -162,9 +162,9 @@ export function FactorBreakdown({ factors }: { factors: Record<string, number> }
         <div key={name} className="flex items-center gap-3 text-[11px]">
           <span className="w-36 shrink-0 text-white/45">{name.replaceAll("_", " ")}</span>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full rounded-full bg-sky-400/70" style={{ width: `${Math.min(100, value * 200)}%` }} />
+            <div className={`h-full rounded-full ${value < 0 ? "bg-emerald-400/70" : "bg-sky-400/70"}`} style={{ width: `${Math.min(100, Math.abs(value) * 200)}%` }} />
           </div>
-          <span className="w-12 text-right font-mono text-white/60">+{value.toFixed(3)}</span>
+          <span className="w-12 text-right font-mono text-white/60">{value >= 0 ? "+" : ""}{value.toFixed(3)}</span>
         </div>
       ))}
     </div>

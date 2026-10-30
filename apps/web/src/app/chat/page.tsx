@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, Download, FileText, Paperclip, Plus, Send, ShieldCheck, Trash2, X } from "lucide-react";
+import { usePolling } from "@/lib/usePolling";
 import AppShell, { useUser } from "@/components/AppShell";
 import { DecisionBadge, FactorBreakdown, ReasonList, RiskBar } from "@/components/ui";
 import {
@@ -66,9 +67,7 @@ function ChatContent() {
     }
   }, []);
 
-  useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
+  usePolling(loadConversations);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -444,9 +443,7 @@ function ApprovalCard({ approvalId, onResume, resumed, busy }: { approvalId: num
     }
   }, [approvalId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  usePolling(load);
 
   useEffect(() => {
     if (!status || status.status !== "PENDING") return;

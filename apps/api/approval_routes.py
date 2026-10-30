@@ -11,6 +11,8 @@ from apps.api.context import ExecutionContext
 from apps.api.database import get_db
 from apps.api.models import Agent, ApprovalRequest, User
 from apps.api.tool_executor import ToolExecutor
+from apps.api.tool_broker import assess_request
+from apps.api.policy_engine import Decision
 from apps.api.trust_model import APPROVAL_EVIDENCE
 
 router = APIRouter(prefix="/api/approvals")
@@ -64,29 +66,40 @@ def decide_approval(approval_id: int, request: DecisionRequest, db: Session = De
     decision = request.decision.upper()
     if decision not in {"APPROVE", "REJECT"}:
         raise HTTPException(status_code=400, detail="Decision must be APPROVE or REJECT")
-    approval = db.get(ApprovalRequest, approval_id)
+    approval = db.scalar(select(ApprovalRequest).where(ApprovalRequest.id == approval_id).with_for_update())
     if approval is None:
         raise HTTPException(status_code=404, detail="Approval request not found")
     if approval.status != "PENDING":
         raise HTTPException(status_code=409, detail="Approval request has already been decided")
 
     ctx = ExecutionContext.from_json(approval.context)
+    agent = db.get(Agent, approval.agent_id)
+    requester = db.get(User, ctx.user_id) if ctx.user_id else None
+    if decision == "APPROVE":
+        if ctx.user_id is None:
+            raise HTTPException(status_code=409, detail="This legacy request lacks requester context. Submit a new request before approval.")
+        current = assess_request(db, agent, requester, approval.tool_name, approval.arguments, ctx)["policy"]
+        if current.decision == Decision.DENY:
+            raise HTTPException(status_code=409, detail=f"Approval blocked by current policy ({current.rule}). Reject this request or resolve the restriction first.")
     approval.status = "APPROVED" if decision == "APPROVE" else "REJECTED"
     approval.decided_by = user.email
     approval.decided_at = datetime.utcnow()
 
     tool_result = None
     if decision == "APPROVE":
-        tool_result = ToolExecutor().execute(approval.tool_name, approval.arguments, ctx)
+        try:
+            tool_result = ToolExecutor().execute(approval.tool_name, approval.arguments, ctx)
+        except Exception as exc:
+            tool_result = {"status": "error", "result": f"Approved action failed: {exc}"}
         tool_result["files"] = ctx.files_created
         approval.execution_result = tool_result
 
     # Human feedback is the strongest trust evidence there is.
-    agent = db.get(Agent, approval.agent_id)
     pos, neg, why = APPROVAL_EVIDENCE["agent"][decision]
-    trust.apply_evidence(db, agent, pos, neg, f"{why} [{approval.tool_name}]", "approval")
-    requester = db.get(User, ctx.user_id) if ctx.user_id else None
-    if requester is not None and requester.id != user.id:
+    execution_ok = decision == "REJECT" or (tool_result or {}).get("status") == "success"
+    if execution_ok:
+        trust.apply_evidence(db, agent, pos, neg, f"{why} [{approval.tool_name}]", "approval")
+    if execution_ok and requester is not None and requester.id != user.id:
         upos, uneg, uwhy = APPROVAL_EVIDENCE["user"][decision]
         trust.mark_flag_if_needed(requester, trust.apply_evidence(db, requester, upos, uneg, f"{uwhy} [{approval.tool_name}]", "approval"))
     db.commit()

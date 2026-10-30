@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { usePolling } from "@/lib/usePolling";
 import AppShell, { useUser } from "@/components/AppShell";
 import { DecisionBadge, EmptyState, ErrorBox, Panel, ReasonList, RiskBar, formatTime } from "@/components/ui";
 import { apiGet, apiSend } from "@/lib/api";
@@ -45,11 +46,7 @@ function ApprovalsContent() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 5000);
-    return () => clearInterval(id);
-  }, [load]);
+  usePolling(load, 5000);
 
   async function decide(id: number, decision: "APPROVE" | "REJECT") {
     setBusy(id);

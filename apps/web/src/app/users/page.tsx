@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
+import { usePolling } from "@/lib/usePolling";
 import AppShell, { useUser } from "@/components/AppShell";
 import TrustHistory from "@/components/TrustHistory";
 import { ErrorBox, Panel, TierBadge, formatTime } from "@/components/ui";
@@ -36,11 +37,7 @@ function UsersContent() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 8000);
-    return () => clearInterval(id);
-  }, [load]);
+  usePolling(load, 8000);
 
   async function act(path: string, method: "POST" | "PATCH", body: unknown = {}) {
     try {
