@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { usePolling } from "@/lib/usePolling";
 import AppShell from "@/components/AppShell";
 import { DecisionBadge, EmptyState, ErrorBox, FactorBreakdown, Panel, ReasonList, RiskBar, formatTime } from "@/components/ui";
 import { apiGet, type AgentRun } from "@/lib/api";
@@ -29,11 +30,7 @@ function TraceContent() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 4000);
-    return () => clearInterval(id);
-  }, [load]);
+  usePolling(load, 4000);
 
   const run = runs.find((r) => r.id === selected);
 

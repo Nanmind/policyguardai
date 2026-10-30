@@ -9,6 +9,26 @@ class Base(DeclarativeBase):
     pass
 
 
+class RuntimeControl(Base):
+    """One persistent execution gate, shared by API workers."""
+    __tablename__ = "runtime_control"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    paused: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ControlChange(Base):
+    __tablename__ = "control_changes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    paused: Mapped[bool] = mapped_column(Boolean)
+    actor: Mapped[str] = mapped_column(String(255))
+    reason: Mapped[str] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class Agent(Base):
     __tablename__ = "agents"
 

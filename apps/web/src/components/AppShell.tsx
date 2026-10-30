@@ -43,14 +43,12 @@ const NAV: NavEntry[] = [
   { label: "Audit Explorer", href: "/audit", icon: <Search size={17} /> },
   { label: "My Files", href: "/files", icon: <FolderOpen size={17} /> },
   { label: "Tool Registry", href: "/tools", icon: <Wrench size={17} /> },
+  { label: "Threat Center", href: "/threat-center", icon: <AlertTriangle size={17} /> },
+  { label: "Attack Lab", href: "/attack-lab", icon: <Activity size={17} />, roles: ["admin", "analyst"] },
+  { label: "Policy Studio", href: "/policy-studio", icon: <Shield size={17} />, roles: ["admin", "analyst"] },
   { label: "Users", href: "/users", icon: <Users size={17} />, roles: ["admin"] },
 ];
 
-const COMING_SOON: NavEntry[] = [
-  { label: "Threat Center", icon: <AlertTriangle size={17} /> },
-  { label: "Attack Lab", icon: <AlertTriangle size={17} /> },
-  { label: "Policy Studio", icon: <Shield size={17} /> },
-];
 
 export default function AppShell({
   title,
@@ -146,14 +144,7 @@ export default function AppShell({
                 );
               })}
 
-              <div className="my-4 border-t border-white/10" />
-              <div className="px-3 pb-1 text-[10px] uppercase tracking-[0.2em] text-white/25">Next phase</div>
-              {COMING_SOON.map((n) => (
-                <div key={n.label} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/25">
-                  {n.icon}
-                  <span>{n.label}</span>
-                </div>
-              ))}
+
             </nav>
 
             <div className="border-t border-white/10 p-4">

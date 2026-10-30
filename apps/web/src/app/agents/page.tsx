@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { usePolling } from "@/lib/usePolling";
 import AppShell, { useUser } from "@/components/AppShell";
 import TrustHistory from "@/components/TrustHistory";
 import { ErrorBox, ToolChip, TrustMeter } from "@/components/ui";
@@ -29,11 +30,7 @@ function AgentsContent() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 8000);
-    return () => clearInterval(id);
-  }, [load]);
+  usePolling(load, 8000);
 
   async function update(id: number, body: Record<string, boolean>) {
     try {

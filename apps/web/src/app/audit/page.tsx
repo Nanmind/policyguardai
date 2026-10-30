@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useState } from "react";
+import { usePolling } from "@/lib/usePolling";
 import AppShell from "@/components/AppShell";
 import { DecisionBadge, EmptyState, ErrorBox, FactorBreakdown, Panel, ReasonList, RiskBar, formatTime } from "@/components/ui";
 import { apiGet, type Agent, type SecurityEvent } from "@/lib/api";
@@ -33,9 +34,7 @@ function AuditContent() {
     }
   }, [decision, agentId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  usePolling(load);
 
   useEffect(() => {
     apiGet<Agent[]>("/api/agents").then(setAgents).catch(() => {});

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { Activity, Bot, CheckCircle2, Clock3, RefreshCw, Shield, Wrench, XCircle } from "lucide-react";
+import { usePolling } from "@/lib/usePolling";
 import AppShell from "@/components/AppShell";
 import { DecisionBadge, EmptyState, ErrorBox, Panel, RiskBar, TrustMeter, formatTime } from "@/components/ui";
 import { apiGet, type Agent, type SecurityEvent } from "@/lib/api";
@@ -45,11 +46,7 @@ export default function DashboardPage() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 5000);
-    return () => clearInterval(id);
-  }, [load]);
+  usePolling(load, 5000);
 
   const pct = (v: number) => `${Math.round(Math.max(0, Math.min(1, v)) * 100)}%`;
   const v = (n: number | undefined) => (data ? String(n ?? 0) : "—");
